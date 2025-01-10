@@ -12,9 +12,10 @@ On your machine you need to have installed `docker` and `docker-compose` and ofc
 
 Clone this repo and `cd` into it.
 
-For first time usage use the instructions below, so build our custom vsserver docker image first. 
+For first time usage use the instructions below, so build our custom vsserver docker image first and get loki plugin. 
 
 ```
+docker plugin install grafana/loki-docker-driver:2.9.4 --alias loki --grant-all-permissions
 sudo docker-compose build
 ```
 
