@@ -17,10 +17,10 @@ services:
       - INFLUXD_PPROF_DISABLED=true
       - INFLUXD_METRICS_DISABLED=true
     ports:
-      - ${INFLUXDB_PORT}:8086
+      - 8086:8086
     volumes:
-      - ${INFLUXDB_DATA}:/var/lib/influxdb2
-      - ${INFLUXDB_CONFIG}:/etc/influxdb2
+      - ./data/influxdb/data:/var/lib/influxdb2
+      - ./data/influxdb/config:/etc/influxdb2
     healthcheck:
       test: "curl -f http://localhost:8086/ping"
       interval: 1s
@@ -39,7 +39,7 @@ services:
       - ./loki/retention-config.yaml:/etc/loki/retention-config.yaml
       - ./data/loki:/loki
     ports:
-      - "3100:3100"
+      - 3100:3100
     command: 
       - -config.file=/etc/loki/retention-config.yaml
       - -config.expand-env=true
@@ -100,10 +100,10 @@ services:
       - TZ=${SYSTEM_TIMEZONE:-Europe/Moscow}
     user: "0"
     ports:
-      - ${GRAFANA_PORT}:3000
+      - 3000:3000
     volumes:
-      - ${GRAFANA_DATA}:/var/lib/grafana
-      - ${GRAFANA_DATA}/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./data/grafana:/var/lib/grafana
+      - ./data/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
     healthcheck:
       test: "curl -f http://localhost:3000/api/health"
       interval: 1s
