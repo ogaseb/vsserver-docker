@@ -34,9 +34,18 @@ Start by making them executable
 sudo chmod -x start.sh & sudo chmod -x stop.sh
 ```
 
+```
+sudo ./start.sh
+sudo ./stop.sh
+```
+
 And then you can start/stop server and other services with those two simple scripts.
 
 # Configs
 
 When you gonna use LiveMap adjust the port in the config in the `ModConfig\livemap.json` to `42069` or change to something else, but remember to adjust the exposed port in `compose.yml` for vsserver service.
+
+You can access grafana on `http://localhost:3000` all dashboard that I'm using are in the `grafana` directory, just import them. As for data providers, both ExpandedLogs and Temporalog have readme's how to do that. Adding prometheus is as simple as providing the url for it `http://prometheus:9090`.
+
+
 
