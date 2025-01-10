@@ -1,8 +1,8 @@
 # vsserver-docker
 Vintage Story dockerized with support for ExpandedLogs and Temporalog, also with exposed livemap.
 
-https://mods.vintagestory.at/temporalog
-https://mods.vintagestory.at/explogs
+https://mods.vintagestory.at/temporalog \
+https://mods.vintagestory.at/explogs \
 https://mods.vintagestory.at/livemap
 
 # Usage
