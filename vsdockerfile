@@ -1,0 +1,24 @@
+FROM mcr.microsoft.com/dotnet/runtime:7.0
+
+WORKDIR /vintagestory
+# Install dependencies
+RUN apt-get update && \
+    apt-get install -y wget tar procps screen nano curl && \
+    apt-get clean
+# Add Vintage Story server
+RUN wget -O vintagestory.tar.gz https://cdn.vintagestory.at/gamefiles/unstable/vs_server_linux-x64_1.20.0-rc.8.tar.gz && \
+    tar -xf vintagestory.tar.gz -C /vintagestory && \
+    rm vintagestory.tar.gz
+
+RUN chmod +x /vintagestory/server.sh
+
+# Expose default port
+EXPOSE 42420
+EXPOSE 42069
+EXPOSE 8080
+
+# Set up data volume
+VOLUME ["/vintagestory/data"]
+
+# Run the server
+ENTRYPOINT ["dotnet", "VintagestoryServer.dll", "--dataPath", "/vintagestory/data"]

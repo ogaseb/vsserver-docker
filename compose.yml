@@ -1,0 +1,138 @@
+x-def-logging: &default-logging
+  logging:
+    driver: "loki"
+    options:
+      loki-url: "http://localhost:3100/loki/api/v1/push"
+      loki-batch-size: "100"
+      loki-retries: 2
+      loki-max-backoff: 1000ms
+      loki-timeout: 1s
+
+services:
+  influxdb:
+    container_name: influxdb
+    image: influxdb:2.7
+    restart: unless-stopped
+    environment:
+      - INFLUXD_PPROF_DISABLED=true
+      - INFLUXD_METRICS_DISABLED=true
+    ports:
+      - ${INFLUXDB_PORT}:8086
+    volumes:
+      - ${INFLUXDB_DATA}:/var/lib/influxdb2
+      - ${INFLUXDB_CONFIG}:/etc/influxdb2
+    healthcheck:
+      test: "curl -f http://localhost:8086/ping"
+      interval: 1s
+      timeout: 10s
+      retries: 30
+
+  loki:
+    hostname: loki
+    container_name: loki
+    image: grafana/loki:2.9.0
+    restart: unless-stopped
+    user: "0"
+    environment:
+      TZ: ${SYSTEM_TIMEZONE:-Europe/Moscow}
+    volumes:
+      - ./loki/retention-config.yaml:/etc/loki/retention-config.yaml
+      - ./data/loki:/loki
+    ports:
+      - "3100:3100"
+    command: 
+      - -config.file=/etc/loki/retention-config.yaml
+      - -config.expand-env=true
+    healthcheck:
+      test: wget --quiet --tries=1 --output-document=- http://localhost:3100/ready | grep -q -w ready || exit 1
+      interval: 1s
+      timeout: 10s
+      retries: 30
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: unless-stopped
+    user: "0"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./data/prometheus:/etc/prometheus
+      - ./data/prometheus/prom_data:/prometheus
+    ports:
+      - 9090:9090
+    healthcheck:
+      test: "wget -qO- http://localhost:9090/-/healthy"
+      interval: 1s
+      timeout: 10s
+      retries: 30
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - --web.listen-address=0.0.0.0:9100
+    expose:
+      - 9100:9100
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    healthcheck:
+      test: "wget -qO- http://localhost:9100/metrics"
+      interval: 1s
+      timeout: 10s
+      retries: 30
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:11.4.0
+    restart: unless-stopped
+    environment:
+      - GF_METRICS_ENABLED=false
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - TZ=${SYSTEM_TIMEZONE:-Europe/Moscow}
+    user: "0"
+    ports:
+      - ${GRAFANA_PORT}:3000
+    volumes:
+      - ${GRAFANA_DATA}:/var/lib/grafana
+      - ${GRAFANA_DATA}/provisioning/datasources:/etc/grafana/provisioning/datasources
+    healthcheck:
+      test: "curl -f http://localhost:3000/api/health"
+      interval: 1s
+      timeout: 10s
+      retries: 30
+
+  vsserver:
+    build:
+      context: .
+      dockerfile: vsdockerfile
+    container_name: vsserver
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    user: "1000"
+    <<: *default-logging
+    ports:
+      - 42420:42420
+      - 42069:42069
+      - 8080:8080
+    environment:
+      - GAME_VERSION=1.20.0-rc.8
+      - GAME_BRANCH=unstable
+      - SERVER_NAME=Edenval RP
+      - WORLD_NAME=Edenval
+    volumes:
+      - ./data:/vintagestory/data
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep -q 'dotnet' || exit 1"]
+      interval: 1s
+      timeout: 10s
+      retries: 30
