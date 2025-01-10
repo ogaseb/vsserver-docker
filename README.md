@@ -27,6 +27,8 @@ sudo docker-compose up -d & sudo chown -R $USER data/
 
 It should create needed volumes and files for VS and other services, all in `data` directory, also it's gonna give onwership of the files to your user, so you're not gonna have issues with editing config files and adding mods etc.. 
 
+If you want to get a different version of VS you need to adjust the `vsdockerfile` and change the cdn url to the one you want.
+
 # Scripts
 
 Start by making them executable
